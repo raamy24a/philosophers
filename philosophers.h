@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:26:37 by radib             #+#    #+#             */
-/*   Updated: 2025/09/15 15:03:37 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/15 16:19:58 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,5 +29,10 @@ typedef struct p
 	int					notme;
 	pthread_mutex_t		mutex;
 }				t_philo;
+
+typedef struct t
+{
+	t_philo	p;
+}				t_table;
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:20:16 by radib             #+#    #+#             */
-/*   Updated: 2025/09/15 15:37:57 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/15 15:49:20 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,12 +37,15 @@ int	eat(t_philo *philo)
 	time = timems(philo, 0);
 	philo->timelastaeaten = time;
 	printf("%d %d is eating \n", time, philo->philo_number);
-	usleep (philo->tte * 1000);
 	while (timems(philo, 0) - p->timelastaeaten < p->ttd && timeeating < p->tte)
+		timeeating = time - timems(philo, 0);
+	if (p->timelastaeaten > p->ttd)
 	{
-		usleep(1000);
+		printf("%d %d died\n", timems(philo, 0), philo->philo_number);
+		return (0);
 	}
-	return (timems(philo, 0));
+	else
+		return (1);
 }
 
 int	sleep(t_philo *philo)
@@ -54,13 +57,11 @@ int	sleep(t_philo *philo)
 	time = timems(philo, 0);
 	printf("%d %d is sleeping \n", time, philo->philo_number);
 	while (timems(philo, 0) - p->timelastaeaten < p->ttd && timeslept < p->tts)
-	{
 		timeslept = time - timems(philo, 0);
-	}
 	if (p->timelastaeaten > p->ttd)
 	{
 		printf("%d %d died\n", timems(philo, 0), philo->philo_number);
-		return (-1);
+		return (0);
 	}
 	else
 		return (1);
@@ -86,7 +87,7 @@ void	*philosophers(void *p)
 	philo = (t_philo *) p;
 	while (1)
 	{
-		p->timelastaeaten = eat(philo);
+		eat(philo);
 		sleep(philo);
 		think(philo);
 	}
