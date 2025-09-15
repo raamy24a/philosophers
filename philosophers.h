@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:26:37 by radib             #+#    #+#             */
-/*   Updated: 2025/08/28 15:29:05 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/15 15:03:37 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 # include <stdlib.h>
 # include <pthread.h>
+# include <sys/time.h>
 
 typedef struct p
 {
@@ -23,6 +24,8 @@ typedef struct p
 	int					ttd;
 	int					tte;
 	int					tts;
+	int					timesincelasteat;
+	int					timeatstart;
 	int					notme;
 	pthread_mutex_t		mutex;
 }				t_philo;

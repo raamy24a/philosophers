@@ -6,18 +6,90 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:20:16 by radib             #+#    #+#             */
-/*   Updated: 2025/08/28 15:29:51 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/15 15:37:57 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philosophers.h"
+
+int	timems(t_philo *philo, int x)
+{
+	struct timeval	*time;
+
+	if (x == 0)
+	{
+		gettimeofday(&time);
+		return (time.tv_sec * 1000 + time.tv_usec / 1000 - philo->timeatstart);
+	}
+	else
+	{
+		gettimeofday(&time);
+		return (time.tv_sec * 1000 + time.tv_usec / 1000);
+	}
+}
+
+int	eat(t_philo *philo)
+{
+	int	*time;
+	int	timeeating;
+
+	timeeating = 0;
+	time = timems(philo, 0);
+	philo->timelastaeaten = time;
+	printf("%d %d is eating \n", time, philo->philo_number);
+	usleep (philo->tte * 1000);
+	while (timems(philo, 0) - p->timelastaeaten < p->ttd && timeeating < p->tte)
+	{
+		usleep(1000);
+	}
+	return (timems(philo, 0));
+}
+
+int	sleep(t_philo *philo)
+{
+	int	*time;
+	int	timeslept;
+
+	timeslept = 0;
+	time = timems(philo, 0);
+	printf("%d %d is sleeping \n", time, philo->philo_number);
+	while (timems(philo, 0) - p->timelastaeaten < p->ttd && timeslept < p->tts)
+	{
+		timeslept = time - timems(philo, 0);
+	}
+	if (p->timelastaeaten > p->ttd)
+	{
+		printf("%d %d died\n", timems(philo, 0), philo->philo_number);
+		return (-1);
+	}
+	else
+		return (1);
+}
+
+void	think(t_philo *philo)
+{
+	int	*time;
+
+	time = timems(philo, 0);
+	printf("%d %d is thinking \n", time, philo->philo_number);
+}
+
+int	checkifalivetoeat(t_philo *philo)
+{
+	return (0);
+}
 
 void	*philosophers(void *p)
 {
 	t_philo	*philo;
 
 	philo = (t_philo *) p;
-	while ();
+	while (1)
+	{
+		p->timelastaeaten = eat(philo);
+		sleep(philo);
+		think(philo);
+	}
 }
 
 int	main(int argc, char const *argv[])
@@ -33,6 +105,8 @@ int	main(int argc, char const *argv[])
 	p->ttd = ft_atoi(argv[2]);
 	p->tte = ft_atoi(argv[3]);
 	p->tts = ft_atoi(argv[4]);
+	p->timelastaeaten = 0;
+	p->timeatstart = gettimeofday(p, 1);
 	p->philo_number = 1;
 	if (argc == 6)
 		p->notme = ft_atoi(argv[5]);
