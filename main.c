@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:20:16 by radib             #+#    #+#             */
-/*   Updated: 2025/09/16 16:09:38 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/16 16:27:06 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ int	eat(t_philo *p)
 		return (1);
 }
 
-int	sleep(t_philo *p)
+int	sleep_philo(t_philo *p)
 {
 	int	time;
 	int	timeslept;
@@ -105,7 +105,7 @@ void	*philosophers(void *p)
 		philo->timeatstart = timems(p, 1);
 		eat(philo);
 		philo->timeeaten++;
-		sleep(philo);
+		sleep_philo(philo);
 		think(philo);
 	}
 }
@@ -118,15 +118,16 @@ int	main(int argc, char const *argv[])
 	pthread_t	thread;
 
 	if (argc != 5 && argc != 6)
-		return (write (1, "erreur\n", 7));
-	arg->nop = ft_atoi(argv[1]);
-	arg->ttd = ft_atoi(argv[2]);
-	arg->tte = ft_atoi(argv[3]);
-	arg->tts = ft_atoi(argv[4]);
+		return (printf ("erreur\n"));
+	arg = malloc (sizeof (t_arg *));
+	arg->nop = ft_atoi(argv[1], 1, 1, 1);
+	arg->ttd = ft_atoi(argv[2], 1, 1, 1);
+	arg->tte = ft_atoi(argv[3], 1, 1, 1);
+	arg->tts = ft_atoi(argv[4], 1, 1, 1);
 	if (argc == 5)
 		arg->notme = 2147483647;
 	if (argc == 6)
-		arg->notme = ft_atoi(argv[5]);
+		arg->notme = ft_atoi(argv[5], 1, 1, 1);
 	i = -1;
 	t = malloc (sizeof (t_table *));
 	t->p = malloc (sizeof(t_philo *) * arg->nop);
@@ -140,7 +141,7 @@ int	main(int argc, char const *argv[])
 		t->p[i - 1]->tts = arg->tts;
 		t->p[i - 1]->notme = arg->notme;
 		t->p[i - 1]->table = t;
-		if (phtread_mutex_init(t->mutex[i - 1]) != 0)
+		if (pthread_mutex_init(t->mutex[i - 1], NULL) != 0)
 			return (printf("mutex error"));
 	}
 	t->thread_status = 1;

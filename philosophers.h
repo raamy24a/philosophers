@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:26:37 by radib             #+#    #+#             */
-/*   Updated: 2025/09/16 16:09:50 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/16 16:23:19 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@
 # include <stdlib.h>
 # include <pthread.h>
 # include <sys/time.h>
+# include <stdio.h>
+# include <unistd.h>
 
 typedef struct arg
 {
@@ -52,5 +54,7 @@ typedef struct t
 	int					thread_status;
 
 }				t_table;
+
+long	ft_atoi(const char *nptr, int sign, int total, int i);
 
 #endif
