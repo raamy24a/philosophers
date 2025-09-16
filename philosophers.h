@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:26:37 by radib             #+#    #+#             */
-/*   Updated: 2025/09/16 16:23:19 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/16 19:52:47 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,6 @@ typedef struct p
 	int					tte;
 	int					tts;
 	int					timesincelasteat;
-	int					timeatstart;
 	int					timelasteaten;
 	int					timeeaten;
 	int					notme;
@@ -52,6 +51,7 @@ typedef struct t
 	pthread_mutex_t		**mutex;
 	int					even_ate_last;
 	int					thread_status;
+	int					timeatstart;
 
 }				t_table;
 
