@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:20:16 by radib             #+#    #+#             */
-/*   Updated: 2025/09/16 13:19:06 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/16 15:31:26 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ int	timems(t_philo *philo, int x)
 
 int	eat(t_philo *p)
 {
-	int	*time;
+	int	time;
 	int	timeeating;
 
 	timeeating = 0;
@@ -51,7 +51,7 @@ int	eat(t_philo *p)
 
 int	sleep(t_philo *p)
 {
-	int	*time;
+	int	time;
 	int	timeslept;
 
 	timeslept = 0;
@@ -70,7 +70,7 @@ int	sleep(t_philo *p)
 
 void	think(t_philo *philo)
 {
-	int	*time;
+	int	time;
 
 	time = timems(philo, 0);
 	printf("%d %d is thinking \n", time, philo->philo_number);
@@ -84,6 +84,8 @@ void	*philosophers(void *p)
 	while (1)
 	{
 		while (philo->table->thread_status)
+			;
+		philo->timeatstart = timems(p, 1);
 		eat(philo);
 		philo->timeeaten++;
 		sleep(philo);
@@ -111,7 +113,21 @@ int	main(int argc, char const *argv[])
 	i = -1;
 	t = malloc (sizeof (t_table *));
 	t->p = malloc (sizeof(t_philo *) * arg->nop);
-	t->thread_status = 0;
+	i = 0;
+	while (++i < arg->nop + 1)
+	{
+		t->p[i - 1]->philo_number = i;
+		t->p[i - 1]->nop = arg->nop;
+		t->p[i - 1]->ttd = arg->ttd;
+		t->p[i - 1]->tte = arg->tte;
+		t->p[i - 1]->tts = arg->tts;
+		t->p[i - 1]->notme = arg->notme;
+		t->p[i - 1]->table = t;
+		if (phtread_mutex_init(t->mutex[i - 1]) != 0)
+			return (printf("mutex error"));
+	}
+	t->thread_status = 1;
+	i = -1;
 	while (++i < arg->nop)
 		pthread_create(&thread, NULL, philosophers, t->p[i]);
 	t->thread_status = 0;
