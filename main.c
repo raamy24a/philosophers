@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:20:16 by radib             #+#    #+#             */
-/*   Updated: 2025/09/16 15:31:26 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/16 16:09:38 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,12 +34,29 @@ int	eat(t_philo *p)
 	int	time;
 	int	timeeating;
 
-	timeeating = 0;
 	time = timems(p, 0);
 	p->timelasteaten = time;
+	if (p->philo_number % 2 == 0)
+	{
+		pthread_mutex_lock(p->table->mutex[p->philo_number]);
+		pthread_mutex_lock(p->table->mutex[p->philo_number + 1]);
+	}
+	else
+	{
+		while (p->table->even_ate_last == 0)
+			usleep(1);
+		pthread_mutex_lock(p->table->mutex[p->philo_number]);
+		pthread_mutex_lock(p->table->mutex[p->philo_number + 1]);
+	}
 	printf("%d %d is eating \n", time, p->philo_number);
 	while (timems(p, 0) - p->timelasteaten < p->ttd && timeeating < p->tte)
-		timeeating = time - timems(p, 0);
+		timeeating = timems(p, 0) - time;
+	pthread_mutex_unlock(p->table->mutex[p->philo_number]);
+	pthread_mutex_unlock(p->table->mutex[p->philo_number + 1]);
+	if (p->philo_number % 2 == 0)
+		p->table->even_ate_last = 1;
+	else
+		p->table->even_ate_last = 0;
 	if (p->timelasteaten > p->ttd)
 	{
 		printf("%d %d died\n", timems(p, 0), p->philo_number);
