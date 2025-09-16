@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:20:16 by radib             #+#    #+#             */
-/*   Updated: 2025/09/16 03:36:08 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/16 13:19:06 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,18 +14,18 @@
 
 int	timems(t_philo *philo, int x)
 {
-	struct timeval	*timemicro;
-	struct timeval	*timeseconds;
+	struct timeval	*m;
+	struct timeval	*s;
 
 	if (x == 0)
 	{
-		gettimeofday(&timemicro, &timeseconds);
-		return (timeseconds->tv_sec * 1000 + timemicro->tv_usec / 1000 - philo->timeatstart);
+		gettimeofday(&m, &s);
+		return (s->tv_sec * 1000 + m->tv_usec / 1000 - philo->timeatstart);
 	}
 	else
 	{
-		gettimeofday(&timemicro, &timeseconds);
-		return (timeseconds->tv_sec * 1000 + timemicro->tv_usec / 1000);
+		gettimeofday(&m, &s);
+		return (s->tv_sec * 1000 + m->tv_usec / 1000);
 	}
 }
 
@@ -83,7 +83,9 @@ void	*philosophers(void *p)
 	philo = (t_philo *) p;
 	while (1)
 	{
+		while (philo->table->thread_status)
 		eat(philo);
+		philo->timeeaten++;
 		sleep(philo);
 		think(philo);
 	}
@@ -102,12 +104,16 @@ int	main(int argc, char const *argv[])
 	arg->ttd = ft_atoi(argv[2]);
 	arg->tte = ft_atoi(argv[3]);
 	arg->tts = ft_atoi(argv[4]);
+	if (argc == 5)
+		arg->notme = 2147483647;
 	if (argc == 6)
 		arg->notme = ft_atoi(argv[5]);
 	i = -1;
+	t = malloc (sizeof (t_table *));
 	t->p = malloc (sizeof(t_philo *) * arg->nop);
-
+	t->thread_status = 0;
 	while (++i < arg->nop)
 		pthread_create(&thread, NULL, philosophers, t->p[i]);
+	t->thread_status = 0;
 	return (0);
 }
