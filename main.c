@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:20:16 by radib             #+#    #+#             */
-/*   Updated: 2025/09/17 04:05:21 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/18 01:25:38 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,9 @@ int	eat(t_philo *p)
 	int	x;
 	int	timeeating;
 
+	//calculate if the 2 philosphers arround are going to let go of fork before death and dont go in if yes
+	// if (p->tte - p->table->p[p->pnbr + 1]->timelasteaten < p->ttd)
+	// 	return (0);
 	if (p->pnbr == p->nop)
 		x = locktwo(p, 0);
 	else if (p->pnbr % 2 == 1)
@@ -76,17 +79,15 @@ int	eat(t_philo *p)
 	else if (p->pnbr % 2 == 0)
 		x = locktwo(p, 2);
 	time = timems(p->table);
-	p->timelasteaten = time;
+	if (p->timelasteaten == 0)
+		p->timelasteaten = time;
 	timeeating = 0;
 	printf("%d %d is eating \n", time, p->pnbr);
-	while (timems(p->table) - p->timelasteaten < p->ttd && timeeating < p->tte)
+	while (timeeating < p->tte)
 		timeeating = timems(p->table) - time;
+	if (p->table->everyone_is_alive == 0)
+		return (0);
 	unlocktwo(p, x);
-	if (timems(p->table) - p->timelasteaten > p->ttd)
-	{
-		p->table->everyone_is_alive = 0;
-		return (printf("%d %d died\n", timems(p->table), p->pnbr));
-	}
 	return (1);
 }
 
@@ -127,17 +128,51 @@ void	*philosophers(void *p)
 	{
 		while (philo->table->thread_status)
 			usleep(1);
+		if (philo->pnbr % 2 == 1)
+			while (philo->table->p[1]->timeeaten == 0)
+				;
+		if (philo->table->everyone_is_alive == 0)
+		{
+			printf("%d", philo->pnbr)
+		}
+			return ();
 		eat(philo);
 		if (philo->table->everyone_is_alive == 0)
 			return (NULL);
 		philo->timeeaten++;
 		sleep_philo(philo);
-			if (philo->table->everyone_is_alive == 0)
-		return (NULL);
+		if (philo->table->everyone_is_alive == 0)
+			return (NULL);
 		think(philo);
-			if (philo->table->everyone_is_alive == 0)
-		return (NULL);
+		if (philo->table->everyone_is_alive == 0)
+			return (NULL);
 	}
+	return (NULL);
+}
+void *watchers(void *table)
+{
+	t_table *t;
+	int 	x;
+	int		someonedied;
+	
+	someonedied = 0;
+	usleep (100);
+	t = (t_table *) table;
+	while (1)
+	{
+		x = 0;
+		while (x < t->p[0]->nop)
+		{
+			if (timems(t) - t->p[x]->timelasteaten > t->p[x]->ttd)
+				someonedied = 1;
+			x++;
+		}
+			if (someonedied == 1)
+				break ;
+	}
+	printf("%d %d diedwatched\n", timems(t), x);
+	t->everyone_is_alive = 0;
+	return (NULL);
 }
 
 int	main(int argc, char const *argv[])
@@ -159,11 +194,12 @@ int	main(int argc, char const *argv[])
 	if (argc == 6)
 		arg->notme = ft_atoi(argv[5], 1, 0, 0);
 	t = malloc (sizeof (t_table));
-	thread = malloc (sizeof(pthread_t *) * arg->nop);
+	thread = malloc (sizeof(pthread_t *) * arg->nop + 1);
 	t->p = malloc (sizeof(t_philo *) * arg->nop);
 	t->mutex = malloc (sizeof (pthread_mutex_t *) * arg->nop);
 	i = 0;
 	t->thread_status = 1;
+	t->thread = thread;
 	while (++i < arg->nop + 1)
 	{
 		t->p[i - 1] = malloc (sizeof(t_philo));
@@ -174,19 +210,26 @@ int	main(int argc, char const *argv[])
 		t->p[i - 1]->tts = arg->tts;
 		t->p[i - 1]->notme = arg->notme;
 		t->p[i - 1]->table = t;
+		t->p[i - 1]->timelasteaten = 0;
 		t->mutex[i - 1] = malloc (sizeof(pthread_mutex_t));
 		if (pthread_mutex_init(t->mutex[i - 1], NULL) != 0)
-			return (printf("mutex error"));
+			return (printf("mutex error\n"));
 	}
 	i = -1;
 	while (++i < arg->nop)
 		pthread_create(&thread[i], NULL, philosophers, t->p[i]);
+	pthread_create(&thread[i], NULL, watchers, t);
 	t->thread_status = 0;
 	t->timeatstart = 0;
 	t->timeatstart = timems(t);
 	t->everyone_is_alive = 1;
-	while (t->everyone_is_alive)
-	;
+	while (t->everyone_is_alive == 1)
+		;
+	i = 0;
+	printf("everyonedied\n");
+	usleep (1000000);
+	while (++i < t->p[0]->nop + 1)
+		pthread_join(t->thread[i - 1], NULL);
 	i = 0;
 	while (++i < arg->nop + 1)
 	{
