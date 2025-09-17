@@ -6,61 +6,87 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:20:16 by radib             #+#    #+#             */
-/*   Updated: 2025/09/16 20:02:47 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/17 03:09:38 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philosophers.h"
 
-int	timems(t_table *t, int x)
+int	timems(t_table *t)
 {
 	struct timeval	tv;
 
-	if (x == 0)
-	{
 		gettimeofday(&tv, NULL);
 		return (tv.tv_sec * 1000 + tv.tv_usec / 1000 - t->timeatstart);
-	}
-	else
-	{
-		gettimeofday(&tv, NULL);
-		return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
-	}
 }
-
+int unlocktwo(t_philo *p, int x)
+{
+	if (x == 2)
+	{
+	pthread_mutex_unlock(p->table->mutex[p->pnbr - 1]);
+	pthread_mutex_unlock(p->table->mutex[p->pnbr]);
+	return (x);
+	}
+	if (x == 1)
+	{
+	pthread_mutex_unlock(p->table->mutex[p->pnbr]);
+	pthread_mutex_unlock(p->table->mutex[p->pnbr - 1]);
+	return (x);
+	}
+	if (x == 0)
+	{
+	pthread_mutex_unlock(p->table->mutex[p->pnbr - 1]);
+	pthread_mutex_unlock(p->table->mutex[0]);
+	return (x);
+	}
+	return (-1);
+}
+int locktwo(t_philo *p, int x)
+{
+	if (x == 2)
+	{
+	pthread_mutex_lock(p->table->mutex[p->pnbr - 1]);
+	pthread_mutex_lock(p->table->mutex[p->pnbr]);
+	return (x);
+	}
+	if (x == 1)
+	{
+	pthread_mutex_lock(p->table->mutex[p->pnbr]);
+	pthread_mutex_lock(p->table->mutex[p->pnbr - 1]);
+	return (x);
+	}
+	if (x == 0)
+	{
+	pthread_mutex_lock(p->table->mutex[p->pnbr - 1]);
+	pthread_mutex_lock(p->table->mutex[0]);
+	return (x);
+	}
+	return (-1);
+}
 int	eat(t_philo *p)
 {
 	int	time;
+	int	x;
 	int	timeeating;
 
-	time = timems(p->table, 0);
+	if (p->pnbr == p->nop)
+		x = locktwo(p, 0);
+	else if (p->pnbr % 2 == 1)
+		x = locktwo(p, 1);
+	else if (p->pnbr % 2 == 0)
+		x = locktwo(p, 2);
+	time = timems(p->table);
 	p->timelasteaten = time;
-	if (p->philo_number % 2 == 0)
+	timeeating = 0;
+	printf("%d %d is eating \n", time, p->pnbr);
+	while (timems(p->table) - p->timelasteaten < p->ttd && timeeating < p->tte)
 	{
-		pthread_mutex_lock(p->table->mutex[p->philo_number - 2]);
-		pthread_mutex_lock(p->table->mutex[p->philo_number - 1]);
+		timeeating = timems(p->table) - time;
 	}
-	else
-	{
-		pthread_mutex_lock(p->table->mutex[p->philo_number - 1]);
-		pthread_mutex_lock(p->table->mutex[p->philo_number]);
-	}
-	printf("%d %d is eating \n", time, p->philo_number);
-	while (timems(p->table, 0) - p->timelasteaten < p->ttd && timeeating < p->tte)
-		timeeating = timems(p->table, 0) - time;
-	pthread_mutex_unlock(p->table->mutex[p->philo_number - 1 + p->philo_number % 2]);
-	pthread_mutex_unlock(p->table->mutex[p->philo_number - 2 + p->philo_number % 2]);
-	if (p->philo_number % 2 == 0)
-		p->table->even_ate_last = 1;
-	else
-		p->table->even_ate_last = 0;
-	if (p->timelasteaten > p->ttd)
-	{
-		printf("%d %d died\n", timems(p->table, 0), p->philo_number);
-		return (0);
-	}
-	else
-		return (1);
+	unlocktwo(p, x);
+	if (timems(p->table) - p->timelasteaten > p->ttd)
+		return (printf("%d %d died\n", timems(p->table), p->pnbr));
+	return (1);
 }
 
 int	sleep_philo(t_philo *p)
@@ -69,13 +95,13 @@ int	sleep_philo(t_philo *p)
 	int	timeslept;
 
 	timeslept = 0;
-	time = timems(p->table, 0);
-	printf("%d %d is sleeping \n", time, p->philo_number);
-	while (timems(p->table, 0) - p->timelasteaten < p->ttd && timeslept < p->tts)
-		timeslept = time - timems(p->table, 0);
-	if (p->timelasteaten > p->ttd)
+	time = timems(p->table);
+	printf("%d %d is sleeping \n", time, p->pnbr);
+	while (timems(p->table) - p->timelasteaten < p->ttd && timeslept < p->tts)
+		timeslept = timems(p->table) - time;
+	if (timems(p->table) - p->timelasteaten > p->ttd)
 	{
-		printf("%d %d died\n", timems(p->table, 0), p->philo_number);
+		printf("%d %d died\n", timems(p->table), p->pnbr);
 		return (0);
 	}
 	else
@@ -86,8 +112,8 @@ void	think(t_philo *p)
 {
 	int	time;
 
-	time = timems(p->table, 0);
-	printf("%d %d is thinking \n", time, p->philo_number);
+	time = timems(p->table);
+	printf("%d %d is thinking \n", time, p->pnbr);
 }
 
 void	*philosophers(void *p)
@@ -132,7 +158,7 @@ int	main(int argc, char const *argv[])
 	while (++i < arg->nop + 1)
 	{
 		t->p[i - 1] = malloc (sizeof(t_philo));
-		t->p[i - 1]->philo_number = i;
+		t->p[i - 1]->pnbr = i;
 		t->p[i - 1]->nop = arg->nop;
 		t->p[i - 1]->ttd = arg->ttd;
 		t->p[i - 1]->tte = arg->tte;
@@ -147,7 +173,8 @@ int	main(int argc, char const *argv[])
 	while (++i < arg->nop)
 		pthread_create(&thread, NULL, philosophers, t->p[i]);
 	t->thread_status = 0;
-	t->timeatstart = timems(t, 1);
+	t->timeatstart = 0;
+	t->timeatstart = timems(t);
 	while (1)
 		;
 	return (0);
