@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:20:16 by radib             #+#    #+#             */
-/*   Updated: 2025/09/17 03:09:38 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/17 04:05:21 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,12 +80,13 @@ int	eat(t_philo *p)
 	timeeating = 0;
 	printf("%d %d is eating \n", time, p->pnbr);
 	while (timems(p->table) - p->timelasteaten < p->ttd && timeeating < p->tte)
-	{
 		timeeating = timems(p->table) - time;
-	}
 	unlocktwo(p, x);
 	if (timems(p->table) - p->timelasteaten > p->ttd)
+	{
+		p->table->everyone_is_alive = 0;
 		return (printf("%d %d died\n", timems(p->table), p->pnbr));
+	}
 	return (1);
 }
 
@@ -102,6 +103,7 @@ int	sleep_philo(t_philo *p)
 	if (timems(p->table) - p->timelasteaten > p->ttd)
 	{
 		printf("%d %d died\n", timems(p->table), p->pnbr);
+		p->table->everyone_is_alive = 0;
 		return (0);
 	}
 	else
@@ -126,9 +128,15 @@ void	*philosophers(void *p)
 		while (philo->table->thread_status)
 			usleep(1);
 		eat(philo);
+		if (philo->table->everyone_is_alive == 0)
+			return (NULL);
 		philo->timeeaten++;
 		sleep_philo(philo);
+			if (philo->table->everyone_is_alive == 0)
+		return (NULL);
 		think(philo);
+			if (philo->table->everyone_is_alive == 0)
+		return (NULL);
 	}
 }
 
@@ -137,7 +145,7 @@ int	main(int argc, char const *argv[])
 	int			i;
 	t_arg		*arg;
 	t_table		*t;
-	pthread_t	thread;
+	pthread_t	*thread;
 
 	if (argc != 5 && argc != 6)
 		return (printf ("erreur\n"));
@@ -151,6 +159,7 @@ int	main(int argc, char const *argv[])
 	if (argc == 6)
 		arg->notme = ft_atoi(argv[5], 1, 0, 0);
 	t = malloc (sizeof (t_table));
+	thread = malloc (sizeof(pthread_t *) * arg->nop);
 	t->p = malloc (sizeof(t_philo *) * arg->nop);
 	t->mutex = malloc (sizeof (pthread_mutex_t *) * arg->nop);
 	i = 0;
@@ -171,11 +180,25 @@ int	main(int argc, char const *argv[])
 	}
 	i = -1;
 	while (++i < arg->nop)
-		pthread_create(&thread, NULL, philosophers, t->p[i]);
+		pthread_create(&thread[i], NULL, philosophers, t->p[i]);
 	t->thread_status = 0;
 	t->timeatstart = 0;
 	t->timeatstart = timems(t);
-	while (1)
-		;
+	t->everyone_is_alive = 1;
+	while (t->everyone_is_alive)
+	;
+	i = 0;
+	while (++i < arg->nop + 1)
+	{
+		free (t->p[i - 1]);
+		pthread_mutex_destroy(t->mutex[i - 1]);
+		free (t->mutex[i - 1]);
+		pthread_join(thread[i - 1], NULL);
+	}
+	free (t->mutex);
+	free (t->p);
+	free (t);
+	free (arg);
+	free (thread);
 	return (0);
 }

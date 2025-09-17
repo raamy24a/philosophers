@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:26:37 by radib             #+#    #+#             */
-/*   Updated: 2025/09/17 00:45:41 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/17 03:38:36 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ typedef struct t
 {
 	t_philo				**p;
 	pthread_mutex_t		**mutex;
-	int					even_ate_last;
+	int					everyone_is_alive;
 	int					thread_status;
 	int					timeatstart;
 
