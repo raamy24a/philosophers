@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:20:16 by radib             #+#    #+#             */
-/*   Updated: 2025/09/18 01:25:38 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/18 03:06:46 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,8 +70,9 @@ int	eat(t_philo *p)
 	int	timeeating;
 
 	//calculate if the 2 philosphers arround are going to let go of fork before death and dont go in if yes
-	// if (p->tte - p->table->p[p->pnbr + 1]->timelasteaten < p->ttd)
-	// 	return (0);
+	if (p->pnbr != 1)
+		if (p->tte - p->table->p[p->pnbr - 1]->timelasteaten > p->ttd- p->timelasteaten)
+			return (-1);
 	if (p->pnbr == p->nop)
 		x = locktwo(p, 0);
 	else if (p->pnbr % 2 == 1)
@@ -101,7 +102,7 @@ int	sleep_philo(t_philo *p)
 	printf("%d %d is sleeping \n", time, p->pnbr);
 	while (timems(p->table) - p->timelasteaten < p->ttd && timeslept < p->tts)
 		timeslept = timems(p->table) - time;
-	if (timems(p->table) - p->timelasteaten > p->ttd)
+	if (p->timelasteaten > p->ttd)
 	{
 		printf("%d %d died\n", timems(p->table), p->pnbr);
 		p->table->everyone_is_alive = 0;
@@ -132,11 +133,9 @@ void	*philosophers(void *p)
 			while (philo->table->p[1]->timeeaten == 0)
 				;
 		if (philo->table->everyone_is_alive == 0)
-		{
-			printf("%d", philo->pnbr)
-		}
-			return ();
-		eat(philo);
+			return (NULL);
+		if (eat(philo) == -1)
+			philo->table->everyone_is_alive = 0;
 		if (philo->table->everyone_is_alive == 0)
 			return (NULL);
 		philo->timeeaten++;
@@ -163,14 +162,14 @@ void *watchers(void *table)
 		x = 0;
 		while (x < t->p[0]->nop)
 		{
-			if (timems(t) - t->p[x]->timelasteaten > t->p[x]->ttd)
+			if (t->p[x]->timelasteaten > t->p[x]->ttd)
 				someonedied = 1;
 			x++;
 		}
 			if (someonedied == 1)
 				break ;
 	}
-	printf("%d %d diedwatched\n", timems(t), x);
+	printf("%d %d died\n", timems(t), x);
 	t->everyone_is_alive = 0;
 	return (NULL);
 }
@@ -226,8 +225,6 @@ int	main(int argc, char const *argv[])
 	while (t->everyone_is_alive == 1)
 		;
 	i = 0;
-	printf("everyonedied\n");
-	usleep (1000000);
 	while (++i < t->p[0]->nop + 1)
 		pthread_join(t->thread[i - 1], NULL);
 	i = 0;
