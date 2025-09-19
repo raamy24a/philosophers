@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:26:37 by radib             #+#    #+#             */
-/*   Updated: 2025/09/17 16:53:47 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/19 03:09:23 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ typedef struct t
 	pthread_mutex_t		**mutex;
 	int					everyone_is_alive;
 	int					thread_status;
-	int					timeatstart;
+	long long			timeatstart;
 	pthread_t			*thread;
 
 }				t_table;
