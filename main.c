@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:20:16 by radib             #+#    #+#             */
-/*   Updated: 2025/09/22 01:31:12 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/22 06:16:23 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,26 +45,32 @@ int locktwo(t_philo *p, int x)
 {
 	if (x == 2)
 	{
+	printf("%lld %d has tried to fork %d\n", timems(p->table), p->pnbr, p->pnbr - 1);
 	pthread_mutex_lock(p->table->mutex[p->pnbr - 1]);
-	printf("%lld %d has taken a fork\n", timems(p->table), p->pnbr);
+	printf("%lld %d has taken a fork %d\n", timems(p->table), p->pnbr, p->pnbr - 1);
+	printf("%lld %d has tried to fork %d\n", timems(p->table), p->pnbr, p->pnbr);
 	pthread_mutex_lock(p->table->mutex[p->pnbr]);
-	printf("%lld %d has taken a fork\n", timems(p->table), p->pnbr);
+	printf("%lld %d has taken a fork %d\n", timems(p->table), p->pnbr, p->pnbr);
 	return (x);
 	}
 	if (x == 1)
 	{
+	printf("%lld %d has tried to fork %d\n", timems(p->table), p->pnbr, p->pnbr);
 	pthread_mutex_lock(p->table->mutex[p->pnbr]);
-	printf("%lld %d has taken a fork\n", timems(p->table), p->pnbr);
+	printf("%lld %d has taken a fork %d\n", timems(p->table), p->pnbr, p->pnbr);
+	printf("%lld %d has tried to fork %d\n", timems(p->table), p->pnbr, p->pnbr - 1);
 	pthread_mutex_lock(p->table->mutex[p->pnbr - 1]);
-	printf("%lld %d has taken a fork\n", timems(p->table), p->pnbr);
+	printf("%lld %d has taken a fork %d\n", timems(p->table), p->pnbr, p->pnbr - 1);
 	return (x);
 	}
 	if (x == 0)
 	{
+	printf("%lld %d has tried to fork %d\n", timems(p->table), p->pnbr, 0);
 	pthread_mutex_lock(p->table->mutex[0]);
-	printf("%lld %d has taken a fork\n", timems(p->table), p->pnbr);
+	printf("%lld %d has taken a fork %d\n", timems(p->table), p->pnbr, 0);
+	printf("%lld %d has tried to fork %d\n", timems(p->table), p->pnbr, p->pnbr - 1);
 	pthread_mutex_lock(p->table->mutex[p->pnbr - 1]);
-	printf("%lld %d has taken a fork\n", timems(p->table), p->pnbr);
+	printf("%lld %d has taken a fork %d\n", timems(p->table), p->pnbr, p->pnbr - 1);
 	return (x);
 	}
 	return (x);
@@ -96,36 +102,60 @@ int	adjmoreorashungry(t_philo *p)
 }
 int	thereenoughtimetoeat(t_philo *p)
 {
-	printf("%d %d %d\n",p->pnbr ,p->tte + p->table->p[p->pnbr - 1]->timelasteaten , p->ttd + p->timelasteaten);
 	if (p->pnbr == p->nop)
 	{
+		printf("%d %d %d\n",p->pnbr ,p->tte + p->table->p[p->pnbr - 2]->timelasteaten , p->ttd + p->timelasteaten);
+		printf("%d %d %d\n",p->pnbr ,p->tte + p->table->p[0]->timelasteaten , p->ttd + p->timelasteaten);
 		if (p->tte + p->table->p[p->pnbr - 2]->timelasteaten > p->ttd + p->timelasteaten)
+		{
+			printf("%d n pa a le temps\n", p->pnbr);
 			return (usleep(1000 * p->ttd - p->timelasteaten - timems(p->table)));
+		}
 		else if (p->tte + p->table->p[0]->timelasteaten > p->ttd + p->timelasteaten)
+		{
+			printf("%d n pa a le temps\n", p->pnbr);
 			return (usleep(1000 * p->ttd - p->timelasteaten - timems(p->table)));
+		}
 	}
 	else if (p->pnbr != 1)
 	{
+		printf("%d %d %d\n",p->pnbr ,p->tte + p->table->p[p->pnbr - 2]->timelasteaten , p->ttd + p->timelasteaten);
+		printf("%d %d %d\n",p->pnbr ,p->tte + p->table->p[p->pnbr]->timelasteaten , p->ttd + p->timelasteaten);
 		if (p->tte + p->table->p[p->pnbr - 2]->timelasteaten > p->ttd + p->timelasteaten)
+		{
+			printf("%d n pa a le temps\n", p->pnbr);
 			return (usleep(1000 * p->ttd - p->timelasteaten - timems(p->table)));
+		}
 		else if (p->tte + p->table->p[p->pnbr]->timelasteaten > p->ttd + p->timelasteaten)
+		{
+			printf("%d n pa a le temps\n", p->pnbr);
 			return (usleep(1000 * p->ttd - p->timelasteaten - timems(p->table)));
+		}
 	}
 	else if (p->pnbr == 1)
 	{
-		if (p->tte + p->table->p[p->pnbr - 1]->timelasteaten > p->ttd + p->timelasteaten)
+		printf("%d %d %d\n",p->pnbr ,p->tte + p->table->p[p->pnbr]->timelasteaten , p->ttd + p->timelasteaten);
+		printf("%d %d %d\n",p->pnbr ,p->tte + p->table->p[p->nop - 1]->timelasteaten , p->ttd + p->timelasteaten);
+		if (p->tte + p->table->p[p->pnbr]->timelasteaten > p->ttd + p->timelasteaten)
+		{
+			printf("1 na pa le temp\n");
 			return (usleep(1000 * p->ttd - p->timelasteaten - timems(p->table)));
-		else if (p->nop != 2 && p->tte + p->table->p[p->pnbr]->timelasteaten > p->ttd + p->timelasteaten)
+		}
+		else if (p->nop != 2 && p->tte + p->table->p[p->nop - 1]->timelasteaten > p->ttd + p->timelasteaten)
+		{
+			printf("1 na pa le temp\n");
 			return (usleep(1000 * p->ttd - p->timelasteaten - timems(p->table)));
+		}
 	}
+	printf("%d a le temps\n", p->pnbr);
 	return (1);
 }
 int	eat(t_philo *p, int x, int timeeating, long long time)
 {
-	if (thereenoughtimetoeat(p) == 0)
-		return (-1);
 	while (adjmoreorashungry(p) == 0)
 		usleep(1000);
+	if (thereenoughtimetoeat(p) == 0)
+		return (-1);
 	if (p->pnbr == p->nop)
 		x = locktwo(p, 0);
 	else if (p->pnbr % 2 == 1)
@@ -236,7 +266,7 @@ void *watchers(void *table)
 			if (someonedied == 1)
 				break ;
 		usleep(1000);
-		printf("%lld\n", timems(t));
+		// printf("%lld\n", timems(t));
 	}
 	printf("%lld %d  died\n", timems(t), t->p[x]->pnbr);
 	t->everyone_is_alive = 0;
@@ -276,6 +306,7 @@ int	main(int argc, char const *argv[])
 		t->p[i - 1]->tte = arg->tte;
 		t->p[i - 1]->tts = arg->tts;
 		t->p[i - 1]->notme = arg->notme;
+		t->p[i - 1]->timeeaten = 0;
 		t->p[i - 1]->table = t;
 		t->p[i - 1]->timelasteaten = 0;
 		t->mutex[i - 1] = malloc (sizeof(pthread_mutex_t));
@@ -295,11 +326,11 @@ int	main(int argc, char const *argv[])
 	t->thread_status = 0;
 	pthread_create(&thread[i], NULL, watchers, t);
 	while (t->everyone_is_alive == 1)
-		usleep(1000);
+		usleep(1000000);
 	i = -1;
 	while (++i < arg->nop)
 	{
-		pthread_join(thread[i], NULL);
+		pthread_detach(thread[i]);
 		free (t->p[i]);
 		pthread_mutex_destroy(t->mutex[i]);
 		free (t->mutex[i]);
