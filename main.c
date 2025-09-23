@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:20:16 by radib             #+#    #+#             */
-/*   Updated: 2025/09/22 06:16:23 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/22 18:54:17 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,7 +153,11 @@ int	thereenoughtimetoeat(t_philo *p)
 int	eat(t_philo *p, int x, int timeeating, long long time)
 {
 	while (adjmoreorashungry(p) == 0)
+	{
+		if (createandcheck(2, p->table) == -1)
+			return (-1);
 		usleep(1000);
+	}
 	if (thereenoughtimetoeat(p) == 0)
 		return (-1);
 	if (p->pnbr == p->nop)
@@ -166,13 +170,15 @@ int	eat(t_philo *p, int x, int timeeating, long long time)
 	p->timelasteaten = time;
 	timeeating = 0;
 	printf("%lld %d is eating \n", time, p->pnbr);
-	while (timeeating < p->tte)
+	while (timeeating < p->tte && createandcheck(2, p->table) == 1)
 	{
 		timeeating = timems(p->table) - time;
 		usleep(1000);
 	}
-	if (p->table->everyone_is_alive == 0)
-		return (0);
+	if (createandcheck(2, p->table) == -1)
+	{
+		return (-1);
+	}
 	unlocktwo(p, x);
 	return (1);
 }
@@ -214,27 +220,31 @@ void	*philosophers(void *p)
 		if (philo->pnbr % 2 == 1)
 			while (philo->table->p[1]->timeeaten == 0)
 				usleep(1000);
-		if (philo->table->everyone_is_alive == 0)
+		if (createandcheck(2, philo->table) == -1)
 		{
 			printf("%d has disappeared\n",philo->pnbr );
 			return (NULL);
 		}
 		if (eat(philo, 0, 0, (long long) 0) == -1)
-			philo->table->everyone_is_alive = 0;
-		if (philo->table->everyone_is_alive == 0)
+		{
+			printf("%d has disappeared\n",philo->pnbr );
+			createandcheck(1, philo->table);
+			return (NULL);
+		}
+		if (createandcheck(2, philo->table) == -1)
 		{
 			printf("%d has disappeared\n",philo->pnbr );
 			return (NULL);
 		}
 		philo->timeeaten++;
 		sleep_philo(philo);
-		if (philo->table->everyone_is_alive == 0)
+		if (createandcheck(2, philo->table) == -1)
 		{
 			printf("%d has disappeared\n",philo->pnbr );
 			return (NULL);
 		}
 		think(philo);
-		if (philo->table->everyone_is_alive == 0)
+		if (createandcheck(2, philo->table) == -1)
 		{
 			printf("%d has disappeared\n",philo->pnbr );
 			return (NULL);
@@ -269,7 +279,7 @@ void *watchers(void *table)
 		// printf("%lld\n", timems(t));
 	}
 	printf("%lld %d  died\n", timems(t), t->p[x]->pnbr);
-	t->everyone_is_alive = 0;
+	createandcheck(1, table);
 	return (NULL);
 }
 
@@ -322,15 +332,15 @@ int	main(int argc, char const *argv[])
 	}
 	t->timeatstart = 0;
 	t->timeatstart = timems(t);
-	t->everyone_is_alive = 1;
+	createandcheck(0, t);
 	t->thread_status = 0;
 	pthread_create(&thread[i], NULL, watchers, t);
-	while (t->everyone_is_alive == 1)
+	while (createandcheck(2, t) != -1)
 		usleep(1000000);
 	i = -1;
 	while (++i < arg->nop)
 	{
-		pthread_detach(thread[i]);
+		pthread_join(thread[i], NULL);
 		free (t->p[i]);
 		pthread_mutex_destroy(t->mutex[i]);
 		free (t->mutex[i]);
@@ -338,6 +348,7 @@ int	main(int argc, char const *argv[])
 	pthread_join(thread[i], NULL);
 	free (t->mutex);
 	free (t->p);
+	free (t->checkallowed);
 	free (t);
 	free (arg);
 	free (thread);

@@ -6,9 +6,11 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/16 16:16:11 by radib             #+#    #+#             */
-/*   Updated: 2025/09/16 16:16:18 by radib            ###   ########.fr       */
+/*   Updated: 2025/09/22 18:50:09 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#include "philosophers.h"
 
 long	ft_atoi(const char *nptr, int sign, int total, int i)
 {
@@ -33,4 +35,31 @@ long	ft_atoi(const char *nptr, int sign, int total, int i)
 	if (!(nptr[i]) && !(sign == -1 && total == 0 && i == 1))
 		return ((long)(total * sign));
 	return (-20000000000);
+}
+
+int		createandcheck(int x, t_table *t)
+{
+	if (x == 0)
+	{
+		t->checkallowed = malloc(sizeof (pthread_mutex_t));
+	if (pthread_mutex_init(t->checkallowed, NULL) != 0)
+			return (printf("mutex error\n"));
+		t->everyone_is_alive = 1;
+	}
+	if (x == 1)
+	{
+		pthread_mutex_lock(t->checkallowed);
+		t->everyone_is_alive = 0;
+		pthread_mutex_unlock(t->checkallowed);
+	}
+	if (x == 2)
+	{
+		pthread_mutex_lock(t->checkallowed);
+		if (t->everyone_is_alive == 0)
+			x = 3;
+		pthread_mutex_unlock(t->checkallowed);
+	}
+	if (x == 3)
+		return (-1);
+	return (1);
 }
