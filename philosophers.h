@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:26:37 by radib             #+#    #+#             */
-/*   Updated: 2025/09/22 17:47:01 by radib            ###   ########.fr       */
+/*   Updated: 2025/10/20 16:44:19 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ typedef struct p
 	int					timelasteaten;
 	int					timeeaten;
 	int					notme;
+	pthread_mutex_t		*check;
 	t_table				*table;
 }				t_philo;
 
@@ -59,5 +60,6 @@ typedef struct t
 
 long	ft_atoi(const char *nptr, int sign, int total, int i);
 int		createandcheck(int x, t_table *t);
+void	prnt_s(char *s, unsigned long long time, long philo, t_table *t);
 
 #endif

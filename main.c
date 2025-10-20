@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:20:16 by radib             #+#    #+#             */
-/*   Updated: 2025/09/22 18:54:17 by radib            ###   ########.fr       */
+/*   Updated: 2025/10/20 16:55:25 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,150 +16,64 @@ long long	timems(t_table *t)
 {
 	struct timeval	tv;
 
-		gettimeofday(&tv, NULL);
-		return (tv.tv_sec * 1000 + tv.tv_usec / 1000 - t->timeatstart);
+	gettimeofday(&tv, NULL);
+	return (tv.tv_sec * 1000 + tv.tv_usec / 1000 - t->timeatstart);
 }
-int unlocktwo(t_philo *p, int x)
+
+int	unlocktwo(t_philo *p, int x)
 {
 	if (x == 2)
 	{
-	pthread_mutex_unlock(p->table->mutex[p->pnbr - 1]);
-	pthread_mutex_unlock(p->table->mutex[p->pnbr]);
-	return (x);
+		pthread_mutex_unlock(p->table->mutex[p->pnbr - 1]);
+		pthread_mutex_unlock(p->table->mutex[p->pnbr]);
+		return (x);
 	}
 	if (x == 1)
 	{
-	pthread_mutex_unlock(p->table->mutex[p->pnbr]);
-	pthread_mutex_unlock(p->table->mutex[p->pnbr - 1]);
-	return (x);
+		pthread_mutex_unlock(p->table->mutex[p->pnbr]);
+		pthread_mutex_unlock(p->table->mutex[p->pnbr - 1]);
+		return (x);
 	}
 	if (x == 0)
 	{
-	pthread_mutex_unlock(p->table->mutex[0]);
-	pthread_mutex_unlock(p->table->mutex[p->pnbr - 1]);
-	return (x);
+		pthread_mutex_unlock(p->table->mutex[0]);
+		pthread_mutex_unlock(p->table->mutex[p->pnbr - 1]);
+		return (x);
 	}
 	return (-1);
 }
-int locktwo(t_philo *p, int x)
+
+int	locktwo(t_philo *p, int x)
 {
 	if (x == 2)
 	{
-	printf("%lld %d has tried to fork %d\n", timems(p->table), p->pnbr, p->pnbr - 1);
-	pthread_mutex_lock(p->table->mutex[p->pnbr - 1]);
-	printf("%lld %d has taken a fork %d\n", timems(p->table), p->pnbr, p->pnbr - 1);
-	printf("%lld %d has tried to fork %d\n", timems(p->table), p->pnbr, p->pnbr);
-	pthread_mutex_lock(p->table->mutex[p->pnbr]);
-	printf("%lld %d has taken a fork %d\n", timems(p->table), p->pnbr, p->pnbr);
-	return (x);
+		pthread_mutex_lock(p->table->mutex[p->pnbr - 1]);
+		prnt_s("has taken a fork", timems(p->table), p->pnbr, p->table);
+		pthread_mutex_lock(p->table->mutex[p->pnbr]);
+		prnt_s("has taken a fork", timems(p->table), p->pnbr, p->table);
+		return (x);
 	}
 	if (x == 1)
 	{
-	printf("%lld %d has tried to fork %d\n", timems(p->table), p->pnbr, p->pnbr);
-	pthread_mutex_lock(p->table->mutex[p->pnbr]);
-	printf("%lld %d has taken a fork %d\n", timems(p->table), p->pnbr, p->pnbr);
-	printf("%lld %d has tried to fork %d\n", timems(p->table), p->pnbr, p->pnbr - 1);
-	pthread_mutex_lock(p->table->mutex[p->pnbr - 1]);
-	printf("%lld %d has taken a fork %d\n", timems(p->table), p->pnbr, p->pnbr - 1);
-	return (x);
+		pthread_mutex_lock(p->table->mutex[p->pnbr]);
+		prnt_s("has taken a fork", timems(p->table), p->pnbr, p->table);
+		pthread_mutex_lock(p->table->mutex[p->pnbr - 1]);
+		prnt_s("has taken a fork", timems(p->table), p->pnbr, p->table);
+		return (x);
 	}
 	if (x == 0)
 	{
-	printf("%lld %d has tried to fork %d\n", timems(p->table), p->pnbr, 0);
-	pthread_mutex_lock(p->table->mutex[0]);
-	printf("%lld %d has taken a fork %d\n", timems(p->table), p->pnbr, 0);
-	printf("%lld %d has tried to fork %d\n", timems(p->table), p->pnbr, p->pnbr - 1);
-	pthread_mutex_lock(p->table->mutex[p->pnbr - 1]);
-	printf("%lld %d has taken a fork %d\n", timems(p->table), p->pnbr, p->pnbr - 1);
-	return (x);
+		pthread_mutex_lock(p->table->mutex[0]);
+		prnt_s("has taken a fork", timems(p->table), p->pnbr, p->table);
+		pthread_mutex_lock(p->table->mutex[p->pnbr - 1]);
+		prnt_s("has taken a fork", timems(p->table), p->pnbr, p->table);
+		return (x);
 	}
 	return (x);
 }
-int	adjmoreorashungry(t_philo *p)
-{
-	if (p->pnbr == 1)
-	{
-		if (p->table->p[p->pnbr]->timelasteaten >= p->timelasteaten && p->table->p[p->nop - 1]->timelasteaten >= p->timelasteaten)
-			return (1);
-		else
-			return (0);
-	}
-	if (p->pnbr == p->nop)
-	{
-		if (p->table->p[p->pnbr - 2]->timelasteaten >= p->timelasteaten && p->table->p[0]->timelasteaten >= p->timelasteaten)
-			return (1);
-		else
-			return (0);
-	}
-	else
-	{
-		if (p->table->p[p->pnbr - 2]->timelasteaten >= p->timelasteaten && p->table->p[p->pnbr]->timelasteaten >= p->timelasteaten)
-			return (1);
-		else
-			return (0);
-	}
-	
-}
-int	thereenoughtimetoeat(t_philo *p)
-{
-	if (p->pnbr == p->nop)
-	{
-		printf("%d %d %d\n",p->pnbr ,p->tte + p->table->p[p->pnbr - 2]->timelasteaten , p->ttd + p->timelasteaten);
-		printf("%d %d %d\n",p->pnbr ,p->tte + p->table->p[0]->timelasteaten , p->ttd + p->timelasteaten);
-		if (p->tte + p->table->p[p->pnbr - 2]->timelasteaten > p->ttd + p->timelasteaten)
-		{
-			printf("%d n pa a le temps\n", p->pnbr);
-			return (usleep(1000 * p->ttd - p->timelasteaten - timems(p->table)));
-		}
-		else if (p->tte + p->table->p[0]->timelasteaten > p->ttd + p->timelasteaten)
-		{
-			printf("%d n pa a le temps\n", p->pnbr);
-			return (usleep(1000 * p->ttd - p->timelasteaten - timems(p->table)));
-		}
-	}
-	else if (p->pnbr != 1)
-	{
-		printf("%d %d %d\n",p->pnbr ,p->tte + p->table->p[p->pnbr - 2]->timelasteaten , p->ttd + p->timelasteaten);
-		printf("%d %d %d\n",p->pnbr ,p->tte + p->table->p[p->pnbr]->timelasteaten , p->ttd + p->timelasteaten);
-		if (p->tte + p->table->p[p->pnbr - 2]->timelasteaten > p->ttd + p->timelasteaten)
-		{
-			printf("%d n pa a le temps\n", p->pnbr);
-			return (usleep(1000 * p->ttd - p->timelasteaten - timems(p->table)));
-		}
-		else if (p->tte + p->table->p[p->pnbr]->timelasteaten > p->ttd + p->timelasteaten)
-		{
-			printf("%d n pa a le temps\n", p->pnbr);
-			return (usleep(1000 * p->ttd - p->timelasteaten - timems(p->table)));
-		}
-	}
-	else if (p->pnbr == 1)
-	{
-		printf("%d %d %d\n",p->pnbr ,p->tte + p->table->p[p->pnbr]->timelasteaten , p->ttd + p->timelasteaten);
-		printf("%d %d %d\n",p->pnbr ,p->tte + p->table->p[p->nop - 1]->timelasteaten , p->ttd + p->timelasteaten);
-		if (p->tte + p->table->p[p->pnbr]->timelasteaten > p->ttd + p->timelasteaten)
-		{
-			printf("1 na pa le temp\n");
-			return (usleep(1000 * p->ttd - p->timelasteaten - timems(p->table)));
-		}
-		else if (p->nop != 2 && p->tte + p->table->p[p->nop - 1]->timelasteaten > p->ttd + p->timelasteaten)
-		{
-			printf("1 na pa le temp\n");
-			return (usleep(1000 * p->ttd - p->timelasteaten - timems(p->table)));
-		}
-	}
-	printf("%d a le temps\n", p->pnbr);
-	return (1);
-}
+
 int	eat(t_philo *p, int x, int timeeating, long long time)
 {
-	while (adjmoreorashungry(p) == 0)
-	{
-		if (createandcheck(2, p->table) == -1)
-			return (-1);
-		usleep(1000);
-	}
-	if (thereenoughtimetoeat(p) == 0)
-		return (-1);
 	if (p->pnbr == p->nop)
 		x = locktwo(p, 0);
 	else if (p->pnbr % 2 == 1)
@@ -169,16 +83,14 @@ int	eat(t_philo *p, int x, int timeeating, long long time)
 	time = timems(p->table);
 	p->timelasteaten = time;
 	timeeating = 0;
-	printf("%lld %d is eating \n", time, p->pnbr);
+	prnt_s("is eating", time, p->pnbr, p->table);
 	while (timeeating < p->tte && createandcheck(2, p->table) == 1)
 	{
 		timeeating = timems(p->table) - time;
 		usleep(1000);
 	}
 	if (createandcheck(2, p->table) == -1)
-	{
 		return (-1);
-	}
 	unlocktwo(p, x);
 	return (1);
 }
@@ -190,7 +102,7 @@ int	sleep_philo(t_philo *p)
 
 	timeslept = 0;
 	time = timems(p->table);
-	printf("%lld %d is sleeping \n", time, p->pnbr);
+	prnt_s("is sleeping", time, p->pnbr, p->table);
 	while (timems(p->table) - p->timelasteaten < p->ttd && timeslept < p->tts)
 	{
 		timeslept = timems(p->table) - time;
@@ -204,7 +116,7 @@ void	think(t_philo *p)
 	long long	time;
 
 	time = timems(p->table);
-	printf("%lld %d is thinking \n", time, p->pnbr);
+	prnt_s("is thinking", time, p->pnbr, p->table);
 }
 
 void	*philosophers(void *p)
@@ -212,7 +124,6 @@ void	*philosophers(void *p)
 	t_philo	*philo;
 
 	philo = (t_philo *) p;
-	printf("%d has appeared\n",philo->pnbr );
 	while (1)
 	{
 		while (philo->table->thread_status)
@@ -221,45 +132,48 @@ void	*philosophers(void *p)
 			while (philo->table->p[1]->timeeaten == 0)
 				usleep(1000);
 		if (createandcheck(2, philo->table) == -1)
-		{
-			printf("%d has disappeared\n",philo->pnbr );
 			return (NULL);
-		}
 		if (eat(philo, 0, 0, (long long) 0) == -1)
 		{
-			printf("%d has disappeared\n",philo->pnbr );
 			createandcheck(1, philo->table);
-			return (NULL);
-		}
-		if (createandcheck(2, philo->table) == -1)
-		{
-			printf("%d has disappeared\n",philo->pnbr );
 			return (NULL);
 		}
 		philo->timeeaten++;
 		sleep_philo(philo);
-		if (createandcheck(2, philo->table) == -1)
-		{
-			printf("%d has disappeared\n",philo->pnbr );
-			return (NULL);
-		}
 		think(philo);
-		if (createandcheck(2, philo->table) == -1)
-		{
-			printf("%d has disappeared\n",philo->pnbr );
-			return (NULL);
-		}
+		return (NULL);
 	}
-	printf("%d has disappeared\n",philo->pnbr );
-	return (NULL);
 }
+
+int	everyone_ate_enough(t_table *t)
+{
+	int	i;
+
+	i = 0;
+	pthread_mutex_lock(t->checkallowed);
+	while (i < t->p[0]->nop)
+	{
+		if (timems(t) - t->p[i]->timelasteaten >= t->p[i]->ttd)
+			return (1);
+		i++;
+	}
+	pthread_mutex_unlock(t->checkallowed);
+}
+
+int check_death(int x, t_table *t)
+{
+	pthread_mutex_lock(t->p[x]->check);
+	if (timems(t) - t->p[x]->timelasteaten >= t->p[x]->ttd)
+		return (1);
+	pthread_mutex_unlock(t->p[x]->check);
+	return (0);
+}
+
 void *watchers(void *table)
 {
-	t_table *t;
-	int 	x;
-	int		someonedied;
-	
-	someonedied = 0;
+	t_table	*t;
+	int		x;
+
 	t = (t_table *) table;
 	usleep (1000 * t->p[0]->ttd);
 	while (1)
@@ -267,19 +181,19 @@ void *watchers(void *table)
 		x = 0;
 		while (x < t->p[0]->nop)
 		{
-			if (timems(t) - t->p[x]->timelasteaten >= t->p[x]->ttd)
-				someonedied = 1;
-			if (someonedied == 1)
+			if (check_death(x, t))
+				createandcheck(1, table);
+			if (createandcheck(2, t) == -1)
+			{
+				printf("%lld %d  died\n", timems(t), t->p[x]->pnbr);
 				break ;
+			}
 			x++;
 		}
-			if (someonedied == 1)
-				break ;
+		if (createandcheck(2, t) == -1)
+			break ;
 		usleep(1000);
-		// printf("%lld\n", timems(t));
 	}
-	printf("%lld %d  died\n", timems(t), t->p[x]->pnbr);
-	createandcheck(1, table);
 	return (NULL);
 }
 
@@ -319,6 +233,8 @@ int	main(int argc, char const *argv[])
 		t->p[i - 1]->timeeaten = 0;
 		t->p[i - 1]->table = t;
 		t->p[i - 1]->timelasteaten = 0;
+		if (pthread_mutex_init(t->p[i - 1]->check, NULL) != 0)
+			return (printf("mutex error\n"));
 		t->mutex[i - 1] = malloc (sizeof(pthread_mutex_t));
 		if (pthread_mutex_init(t->mutex[i - 1], NULL) != 0)
 			return (printf("mutex error\n"));
