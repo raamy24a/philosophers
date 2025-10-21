@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/16 16:16:11 by radib             #+#    #+#             */
-/*   Updated: 2025/10/20 15:15:35 by radib            ###   ########.fr       */
+/*   Updated: 2025/10/21 03:35:48 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ long	ft_atoi(const char *nptr, int sign, int total, int i)
 	return (-20000000000);
 }
 
-void	prnt_s(char *s, unsigned long long time, long philo, t_table *t)
+void	prnt_s(char *s, unsigned long long time, int philo, t_table *t)
 {
 	if (createandcheck(2, t) == 1)
 		printf("%lld %d %s\n", time, philo, s);
@@ -46,12 +46,7 @@ void	prnt_s(char *s, unsigned long long time, long philo, t_table *t)
 int	createandcheck(int x, t_table *t)
 {
 	if (x == 0)
-	{
-		t->checkallowed = malloc(sizeof (pthread_mutex_t));
-		if (pthread_mutex_init(t->checkallowed, NULL) != 0)
-			return (printf("mutex error\n"));
 		t->everyone_is_alive = 1;
-	}
 	if (x == 1)
 	{
 		pthread_mutex_lock(t->checkallowed);

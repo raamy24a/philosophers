@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:20:16 by radib             #+#    #+#             */
-/*   Updated: 2025/10/20 16:55:25 by radib            ###   ########.fr       */
+/*   Updated: 2025/10/21 03:51:19 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,9 @@ int	eat(t_philo *p, int x, int timeeating, long long time)
 	else if (p->pnbr % 2 == 0)
 		x = locktwo(p, 2);
 	time = timems(p->table);
+	pthread_mutex_lock(p->check);
 	p->timelasteaten = time;
+	pthread_mutex_unlock(p->check);
 	timeeating = 0;
 	prnt_s("is eating", time, p->pnbr, p->table);
 	while (timeeating < p->tte && createandcheck(2, p->table) == 1)
@@ -89,8 +91,6 @@ int	eat(t_philo *p, int x, int timeeating, long long time)
 		timeeating = timems(p->table) - time;
 		usleep(1000);
 	}
-	if (createandcheck(2, p->table) == -1)
-		return (-1);
 	unlocktwo(p, x);
 	return (1);
 }
@@ -103,7 +103,7 @@ int	sleep_philo(t_philo *p)
 	timeslept = 0;
 	time = timems(p->table);
 	prnt_s("is sleeping", time, p->pnbr, p->table);
-	while (timems(p->table) - p->timelasteaten < p->ttd && timeslept < p->tts)
+	while (timeslept < p->tts)
 	{
 		timeslept = timems(p->table) - time;
 		usleep(1000);
@@ -118,30 +118,35 @@ void	think(t_philo *p)
 	time = timems(p->table);
 	prnt_s("is thinking", time, p->pnbr, p->table);
 }
-
+int	waiting(int go, t_philo *p)
+{
+	while (go == 0)
+	{
+		pthread_mutex_lock(p->table->checkallowed);
+		if (p->table->thread_status == 0)
+			go = 1;
+		pthread_mutex_unlock(p->table->checkallowed);
+		usleep(1000);
+	}
+}
 void	*philosophers(void *p)
 {
 	t_philo	*philo;
+	int		go;
 
+	go = 0;
 	philo = (t_philo *) p;
 	while (1)
 	{
-		while (philo->table->thread_status)
-			usleep(1000);
-		if (philo->pnbr % 2 == 1)
-			while (philo->table->p[1]->timeeaten == 0)
-				usleep(1000);
+		waiting(0, philo);
 		if (createandcheck(2, philo->table) == -1)
 			return (NULL);
-		if (eat(philo, 0, 0, (long long) 0) == -1)
-		{
-			createandcheck(1, philo->table);
-			return (NULL);
-		}
+		eat(philo, 0, 0, (long long) 0);
+		pthread_mutex_lock(philo->check);
 		philo->timeeaten++;
+		pthread_mutex_unlock(philo->check);
 		sleep_philo(philo);
 		think(philo);
-		return (NULL);
 	}
 }
 
@@ -150,21 +155,29 @@ int	everyone_ate_enough(t_table *t)
 	int	i;
 
 	i = 0;
-	pthread_mutex_lock(t->checkallowed);
 	while (i < t->p[0]->nop)
 	{
-		if (timems(t) - t->p[i]->timelasteaten >= t->p[i]->ttd)
-			return (1);
+		pthread_mutex_lock(t->p[i]->check);
+		if (t->p[i]->timeeaten < t->p[i]->notme)
+		{
+			pthread_mutex_unlock(t->p[i]->check);
+			return (0);
+		}
+		pthread_mutex_unlock(t->p[i]->check);
 		i++;
 	}
-	pthread_mutex_unlock(t->checkallowed);
+	return (1);
 }
 
 int check_death(int x, t_table *t)
 {
 	pthread_mutex_lock(t->p[x]->check);
 	if (timems(t) - t->p[x]->timelasteaten >= t->p[x]->ttd)
+	{
+		printf("%lld %d  diiiiied\n", timems(t), t->p[x]->pnbr);
+		pthread_mutex_unlock(t->p[x]->check);
 		return (1);
+	}
 	pthread_mutex_unlock(t->p[x]->check);
 	return (0);
 }
@@ -173,25 +186,23 @@ void *watchers(void *table)
 {
 	t_table	*t;
 	int		x;
+	int		alive;
 
+	alive = 1;
 	t = (t_table *) table;
 	usleep (1000 * t->p[0]->ttd);
-	while (1)
+	while (alive)
 	{
 		x = 0;
-		while (x < t->p[0]->nop)
+		while (x < t->p[0]->nop && alive)
 		{
 			if (check_death(x, t))
-				createandcheck(1, table);
-			if (createandcheck(2, t) == -1)
 			{
-				printf("%lld %d  died\n", timems(t), t->p[x]->pnbr);
-				break ;
+				alive = 0;
+				createandcheck(1, table);
 			}
 			x++;
 		}
-		if (createandcheck(2, t) == -1)
-			break ;
 		usleep(1000);
 	}
 	return (NULL);
@@ -219,6 +230,9 @@ int	main(int argc, char const *argv[])
 	thread = malloc (sizeof(pthread_t) * (arg->nop + 1));
 	t->p = malloc (sizeof(t_philo *) * arg->nop);
 	t->mutex = malloc(sizeof(pthread_mutex_t *) * arg->nop);
+	t->checkallowed = malloc(sizeof(pthread_mutex_t));
+	if (pthread_mutex_init(t->checkallowed, NULL) != 0)
+			return (printf("mutex error\n"));
 	i = 0;
 	t->thread = thread;
 	while (++i < arg->nop + 1)
@@ -233,6 +247,7 @@ int	main(int argc, char const *argv[])
 		t->p[i - 1]->timeeaten = 0;
 		t->p[i - 1]->table = t;
 		t->p[i - 1]->timelasteaten = 0;
+		t->p[i - 1]->check = malloc (sizeof(pthread_mutex_t));
 		if (pthread_mutex_init(t->p[i - 1]->check, NULL) != 0)
 			return (printf("mutex error\n"));
 		t->mutex[i - 1] = malloc (sizeof(pthread_mutex_t));
@@ -246,10 +261,11 @@ int	main(int argc, char const *argv[])
 		pthread_create(&thread[i], NULL, philosophers, t->p[i]);
 		usleep(100);
 	}
-	t->timeatstart = 0;
 	t->timeatstart = timems(t);
+	pthread_mutex_lock(t->checkallowed);
 	createandcheck(0, t);
 	t->thread_status = 0;
+	pthread_mutex_unlock(t->checkallowed);
 	pthread_create(&thread[i], NULL, watchers, t);
 	while (createandcheck(2, t) != -1)
 		usleep(1000000);
