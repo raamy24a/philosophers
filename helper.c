@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/16 16:16:11 by radib             #+#    #+#             */
-/*   Updated: 2025/10/21 03:35:48 by radib            ###   ########.fr       */
+/*   Updated: 2025/10/22 04:11:12 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,8 +39,13 @@ long	ft_atoi(const char *nptr, int sign, int total, int i)
 
 void	prnt_s(char *s, unsigned long long time, int philo, t_table *t)
 {
+	time = timems(t);
 	if (createandcheck(2, t) == 1)
+	{
+		pthread_mutex_lock(t->printmut);
 		printf("%lld %d %s\n", time, philo, s);
+		pthread_mutex_unlock(t->printmut);
+	}
 }
 
 int	createandcheck(int x, t_table *t)

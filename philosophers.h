@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:26:37 by radib             #+#    #+#             */
-/*   Updated: 2025/10/21 02:28:09 by radib            ###   ########.fr       */
+/*   Updated: 2025/10/22 04:14:04 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,9 +50,9 @@ typedef struct t
 {
 	t_philo				**p;
 	pthread_mutex_t		**mutex;
+	pthread_mutex_t		*printmut;
 	pthread_mutex_t		*checkallowed;
 	int					everyone_is_alive;
-	int					thread_status;
 	long long			timeatstart;
 	pthread_t			*thread;
 
@@ -61,5 +61,6 @@ typedef struct t
 long	ft_atoi(const char *nptr, int sign, int total, int i);
 int		createandcheck(int x, t_table *t);
 void	prnt_s(char *s, unsigned long long time, int philo, t_table *t);
+long long	timems(t_table *t);
 
 #endif

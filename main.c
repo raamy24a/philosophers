@@ -6,7 +6,7 @@
 /*   By: radib <radib@student.s19.be>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 21:20:16 by radib             #+#    #+#             */
-/*   Updated: 2025/10/21 03:51:19 by radib            ###   ########.fr       */
+/*   Updated: 2025/10/22 04:21:06 by radib            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,26 +47,26 @@ int	locktwo(t_philo *p, int x)
 {
 	if (x == 2)
 	{
-		pthread_mutex_lock(p->table->mutex[p->pnbr - 1]);
-		prnt_s("has taken a fork", timems(p->table), p->pnbr, p->table);
 		pthread_mutex_lock(p->table->mutex[p->pnbr]);
-		prnt_s("has taken a fork", timems(p->table), p->pnbr, p->table);
+		prnt_s("has taken left fork", timems(p->table), p->pnbr, p->table);
+		pthread_mutex_lock(p->table->mutex[p->pnbr - 1]);
+		prnt_s("has taken right fork", timems(p->table), p->pnbr, p->table);
 		return (x);
 	}
 	if (x == 1)
 	{
-		pthread_mutex_lock(p->table->mutex[p->pnbr]);
-		prnt_s("has taken a fork", timems(p->table), p->pnbr, p->table);
 		pthread_mutex_lock(p->table->mutex[p->pnbr - 1]);
-		prnt_s("has taken a fork", timems(p->table), p->pnbr, p->table);
+		prnt_s("has taken right fork", timems(p->table), p->pnbr, p->table);
+		pthread_mutex_lock(p->table->mutex[p->pnbr]);
+		prnt_s("has taken left fork", timems(p->table), p->pnbr, p->table);
 		return (x);
 	}
 	if (x == 0)
 	{
 		pthread_mutex_lock(p->table->mutex[0]);
-		prnt_s("has taken a fork", timems(p->table), p->pnbr, p->table);
+		prnt_s("has taken left fork", timems(p->table), p->pnbr, p->table)	;
 		pthread_mutex_lock(p->table->mutex[p->pnbr - 1]);
-		prnt_s("has taken a fork", timems(p->table), p->pnbr, p->table);
+		prnt_s("has taken right fork", timems(p->table), p->pnbr, p->table);
 		return (x);
 	}
 	return (x);
@@ -118,27 +118,20 @@ void	think(t_philo *p)
 	time = timems(p->table);
 	prnt_s("is thinking", time, p->pnbr, p->table);
 }
-int	waiting(int go, t_philo *p)
+void	waiting(t_philo *p)
 {
-	while (go == 0)
-	{
-		pthread_mutex_lock(p->table->checkallowed);
-		if (p->table->thread_status == 0)
-			go = 1;
-		pthread_mutex_unlock(p->table->checkallowed);
-		usleep(1000);
-	}
+	pthread_mutex_lock(p->table->checkallowed);
+	pthread_mutex_unlock(p->table->checkallowed);
 }
+
 void	*philosophers(void *p)
 {
 	t_philo	*philo;
-	int		go;
 
-	go = 0;
 	philo = (t_philo *) p;
 	while (1)
 	{
-		waiting(0, philo);
+		waiting(philo);
 		if (createandcheck(2, philo->table) == -1)
 			return (NULL);
 		eat(philo, 0, 0, (long long) 0);
@@ -233,6 +226,9 @@ int	main(int argc, char const *argv[])
 	t->checkallowed = malloc(sizeof(pthread_mutex_t));
 	if (pthread_mutex_init(t->checkallowed, NULL) != 0)
 			return (printf("mutex error\n"));
+	t->printmut = malloc(sizeof(pthread_mutex_t));
+	if (pthread_mutex_init(t->printmut, NULL) != 0)
+			return (printf("mutex error\n"));
 	i = 0;
 	t->thread = thread;
 	while (++i < arg->nop + 1)
@@ -254,7 +250,7 @@ int	main(int argc, char const *argv[])
 		if (pthread_mutex_init(t->mutex[i - 1], NULL) != 0)
 			return (printf("mutex error\n"));
 	}
-	t->thread_status = 1;
+	pthread_mutex_lock(t->checkallowed);
 	i = -1;
 	while (++i < arg->nop)
 	{
@@ -262,9 +258,7 @@ int	main(int argc, char const *argv[])
 		usleep(100);
 	}
 	t->timeatstart = timems(t);
-	pthread_mutex_lock(t->checkallowed);
 	createandcheck(0, t);
-	t->thread_status = 0;
 	pthread_mutex_unlock(t->checkallowed);
 	pthread_create(&thread[i], NULL, watchers, t);
 	while (createandcheck(2, t) != -1)
